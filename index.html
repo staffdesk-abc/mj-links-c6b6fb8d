@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="12時リンク">
+<title>12時の購入リンク</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* 片手で上から順に押す、1列の道具。上に時計、次に一番大事なボタン、下に商品ごとのリンク */
+:root {
+  --bg: #f6f2f8; --panel: #ffffff; --ink: #2a1f33; --muted: #6d6078; --line: #ddd3e4;
+  --accent: #a80f58; --accent-ink: #ffffff; --live: #0b7a55; --done: #ece6f0;
+  --font: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1420; --panel: #251d2d; --ink: #f3eaf5; --muted: #b3a5bd; --line: #3d3247;
+  --accent: #ff78b4; --accent-ink: #2a0b1b; --live: #4fd6a4; --done: #2f2638; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #1a1420; --panel: #251d2d; --ink: #f3eaf5; --muted: #b3a5bd; --line: #3d3247;
+  --accent: #ff78b4; --accent-ink: #2a0b1b; --live: #4fd6a4; --done: #2f2638; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-weight: 500; font-size: 16px; line-height: 1.55; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 520px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 40px; }
+.clock { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 12px; border-bottom: 1px solid var(--line); }
+.clock-label { font-size: 14px; color: var(--muted); }
+.clock-time { font-size: clamp(44px, 15vw, 60px); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.clock.live .clock-label, .clock.live .clock-time { color: var(--live); }
+.clock.soon .clock-time { color: var(--accent); }
+.clock-now { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+main { display: grid; gap: 22px; padding-top: 16px; }
+.big { display: block; background: var(--accent); color: var(--accent-ink); text-decoration: none; text-align: center; border-radius: 14px; padding: 18px 14px; font-weight: 900; font-size: 21px; line-height: 1.3; }
+.big small { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.steps { margin: 12px 0 0; padding: 0 0 0 1.4em; display: grid; gap: 4px; font-size: 15px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.sub { display: block; text-align: center; text-decoration: none; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 8px; font-weight: 700; }
+h2 { font-size: 17px; font-weight: 900; margin: 0; text-wrap: balance; }
+.note { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.reset { background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; padding: 6px 0; cursor: pointer; }
+.items { list-style: none; margin: 10px 0 0; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.items li + li { border-top: 1px solid var(--line); }
+.item { display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 58px; padding: 8px 12px; color: var(--ink); text-decoration: none; }
+.code { font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums; }
+.name { font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
+.price { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.tapped { display: block; font-size: 12px; font-weight: 700; color: var(--muted); }
+.item.is-open { background: var(--done); }
+.item.is-open .code { color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+footer p { margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="clock" id="clock" role="timer">
+    <div class="clock-label" id="clockLabel">読み込み中</div>
+    <div class="clock-time" id="clockTime">--:--:--</div>
+    <div class="clock-now" id="clockNow"></div>
+  </div>
+  <main>
+    <section>
+      <a class="big" id="allLink" target="_blank" rel="noopener">
+        まとめて開く<small id="allNote"></small>
+      </a>
+      <ol class="steps">
+        <li>開けたら、金額を確かめて支払います。</li>
+        <li>エラーが出たら、画面の「カートを更新する」を押します。</li>
+        <li>商品が入っていれば、そのまま支払います。空なら、下のリンクを上から押します。</li>
+      </ol>
+      <div class="row2">
+        <a class="sub" id="cartLink" target="_blank" rel="noopener">カートを見る</a>
+        <a class="sub" id="storeLink" target="_blank" rel="noopener">お店のトップ</a>
+      </div>
+    </section>
+    <section>
+      <div class="head">
+        <h2 id="eachTitle">商品ごとのリンク</h2>
+        <button class="reset" id="reset" type="button">押した印を消す</button>
+      </div>
+      <p class="note" id="eachNote"></p>
+      <ul class="items" id="items"></ul>
+    </section>
+    <footer>
+      <p id="updated"></p>
+      <p>個人用のリンク集です。お店には自動でアクセスしません。リンクを押すのも支払うのもご自身です。</p>
+      <p id="budgetNote"></p>
+    </footer>
+  </main>
+</div>
+
+<script>
+let DATA = {"stamp": "2026-11-02T14:50:40+09:00", "updated": "11/2 14:50", "start": "12:00", "store": "https://www.mellojoyjapan.com/", "cart": "https://www.mellojoyjapan.com/cart", "all": "https://www.mellojoyjapan.com/cart/50702255358192:1,49484020515056:1,50473733161200:1,50667291476208:1,50647964614896:1,50576204234992:1,49494304981232:1,50271437521136:1,50556280537328:1,49517434765552:1,49831452737776:1,49487400534256:1,49494150086896:1,47816183218416:1,48086199927024:1,50407719010544:1,48086199894256:1,47712222806256:1,47712222839024:1,47712222871792:1,48086199959792:1,50685848289520:1,49956579901680:1,49841091936496:1", "allTotal": 60976, "shipping": 499, "freeFrom": 5000, "items": [{"code": "Z092-1", "name": "もちもちもち - ドカン！やきいも", "qty": 1, "price": 2499, "id": "50702255358192", "url": "https://www.mellojoyjapan.com/cart/50702255358192:1"}, {"code": "Z002-1", "name": "ムースクリーム -バター", "qty": 1, "price": 1599, "id": "49484020515056", "url": "https://www.mellojoyjapan.com/cart/49484020515056:1"}, {"code": "Z076-2", "name": "もちもちもち-柴犬おしり", "qty": 1, "price": 2399, "id": "50473733161200", "url": "https://www.mellojoyjapan.com/cart/50473733161200:1"}, {"code": "Z089-2", "name": "ムースクリーム - メロジョイチョコレコード", "qty": 1, "price": 2799, "id": "50667291476208", "url": "https://www.mellojoyjapan.com/cart/50667291476208:1"}, {"code": "Z078-3", "name": "もちもちもち - わふわ肉球ミルクパフ", "qty": 1, "price": 2499, "id": "50647964614896", "url": "https://www.mellojoyjapan.com/cart/50647964614896:1"}, {"code": "Z080-4", "name": "ムースクリーム-砂糖クリームわん", "qty": 1, "price": 2399, "id": "50576204234992", "url": "https://www.mellojoyjapan.com/cart/50576204234992:1"}, {"code": "Z056-1", "name": "ムースクリーム - メロジョイクリームミルフィーユ", "qty": 1, "price": 2399, "id": "49494304981232", "url": "https://www.mellojoyjapan.com/cart/49494304981232:1"}, {"code": "A037", "name": "ねっとりヨーグルト&ムースクリーム&もちもちもち - メロイアの暮らしの図鑑", "qty": 1, "price": 2699, "id": "50271437521136", "url": "https://www.mellojoyjapan.com/cart/50271437521136:1"}, {"code": "A041", "name": "ムースクリーム - オー！ドーナツー", "qty": 1, "price": 2899, "id": "50556280537328", "url": "https://www.mellojoyjapan.com/cart/50556280537328:1"}, {"code": "A034", "name": "ムースクリーム -トーストつみつみシリーズ", "qty": 1, "price": 2899, "id": "49517434765552", "url": "https://www.mellojoyjapan.com/cart/49517434765552:1"}, {"code": "A036", "name": "ムースクリーム - メロジョイトーストスティック、集合！", "qty": 1, "price": 2799, "id": "49831452737776", "url": "https://www.mellojoyjapan.com/cart/49831452737776:1"}, {"code": "Z048-8", "name": "ムースクリーム - メロジョイいちごショートケーキスライス", "qty": 1, "price": 2299, "id": "49487400534256", "url": "https://www.mellojoyjapan.com/cart/49487400534256:1"}, {"code": "Z048-10", "name": "ムースクリーム - メロジョイいちごショートケーキホール", "qty": 1, "price": 2499, "id": "49494150086896", "url": "https://www.mellojoyjapan.com/cart/49494150086896:1"}, {"code": "Z001", "name": "クリーミークリーム- 贅沢スフレ", "qty": 1, "price": 2599, "id": "47816183218416", "url": "https://www.mellojoyjapan.com/cart/47816183218416:1"}, {"code": "Z001-5", "name": "タロ芋-クリーミークリーム", "qty": 1, "price": 2599, "id": "48086199927024", "url": "https://www.mellojoyjapan.com/cart/48086199927024:1"}, {"code": "A039", "name": "ムースクリーム - メロジョイ極み・鮨", "qty": 1, "price": 2899, "id": "50407719010544", "url": "https://www.mellojoyjapan.com/cart/50407719010544:1"}, {"code": "Z001-4", "name": "シーソルト-クリーミークリーム", "qty": 1, "price": 2599, "id": "48086199894256", "url": "https://www.mellojoyjapan.com/cart/48086199894256:1"}, {"code": "Z001-1", "name": "贅沢スフレ-クリーミークリーム", "qty": 1, "price": 2599, "id": "47712222806256", "url": "https://www.mellojoyjapan.com/cart/47712222806256:1"}, {"code": "Z001-2", "name": "いちごスフレ-クリーミークリーム", "qty": 1, "price": 2599, "id": "47712222839024", "url": "https://www.mellojoyjapan.com/cart/47712222839024:1"}, {"code": "Z001-3", "name": "抹茶スフレ-クリーミークリーム", "qty": 1, "price": 2599, "id": "47712222871792", "url": "https://www.mellojoyjapan.com/cart/47712222871792:1"}, {"code": "Z001-6", "name": "チョコレート-クリーミークリーム", "qty": 1, "price": 2599, "id": "48086199959792", "url": "https://www.mellojoyjapan.com/cart/48086199959792:1"}, {"code": "Z072-11", "name": "ムースクリーム——ミディアムサイズ(中号)メロジョイシーソルトスフレ", "qty": 1, "price": 2399, "id": "50685848289520", "url": "https://www.mellojoyjapan.com/cart/50685848289520:1"}, {"code": "Z072-8", "name": "クリーミークリーム——ミディアムサイズ[中号]メロジョイいちごスフレ", "qty": 1, "price": 2399, "id": "49956579901680", "url": "https://www.mellojoyjapan.com/cart/49956579901680:1"}, {"code": "Z072-2", "name": "ムースクリーム——ミディアムサイズ(中号M)メロジョイ贅沢スフレ", "qty": 1, "price": 2399, "id": "49841091936496", "url": "https://www.mellojoyjapan.com/cart/49841091936496:1"}]};
+const yen = n => '¥' + n.toLocaleString('ja-JP');
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const hms = s => `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+const DAY = 86400;
+const LIVE_SECONDS = 600;
+const jst = () => new Date(Date.now() + 9 * 3600 * 1000);
+const dayKey = () => 'tapped-' + jst().toISOString().slice(0, 10);
+
+function loadTapped() {
+  try { return JSON.parse(localStorage.getItem(dayKey())) || {}; } catch (e) { return {}; }
+}
+function saveTapped(value) {
+  try { localStorage.setItem(dayKey(), JSON.stringify(value)); } catch (e) { /* 保存できなくても押せる */ }
+}
+let tapped = loadTapped();
+
+function drawAll() {
+  $('allLink').href = DATA.all;
+  $('cartLink').href = DATA.cart;
+  $('storeLink').href = DATA.store;
+  $('allNote').textContent = DATA.items.length ? `${DATA.items.length}品・各1個。エラーが出たら「カートを更新する」で、出ている商品だけ残ります` : '購入対象がありません';
+  $('eachTitle').textContent = `商品ごとのリンク（${DATA.items.length}品）`;
+  $('eachNote').textContent = `別々の注文になります。${yen(DATA.freeFrom)} 未満は送料 ${yen(DATA.shipping)}。エラーなら戻って次へ。`;
+  $('updated').textContent = `一覧は ${DATA.updated} に PC のアプリと同じになりました。`;
+  $('budgetNote').textContent = `全部入った場合の見込みは ${yen(DATA.allTotal)}。13個以上入るとお店の個数制限で進めません。最終金額が決めた上限を超えたら支払わないでください。`;
+  drawItems();
+}
+
+function drawItems() {
+  const list = $('items');
+  list.textContent = '';
+  for (const item of DATA.items) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.className = 'item' + (tapped[item.id] ? ' is-open' : '');
+    a.href = item.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = '<span class="code"></span><span class="name"></span><span class="price"></span>';
+    a.querySelector('.code').textContent = item.code;
+    a.querySelector('.name').textContent = item.name;
+    const price = a.querySelector('.price');
+    price.textContent = yen(item.price);
+    if (tapped[item.id]) {
+      const mark = document.createElement('span');
+      mark.className = 'tapped';
+      mark.textContent = `${tapped[item.id]}回押した`;
+      price.append(mark);
+    }
+    a.addEventListener('click', () => {
+      tapped[item.id] = (tapped[item.id] || 0) + 1;
+      saveTapped(tapped);
+      setTimeout(drawItems, 0);
+    });
+    li.append(a);
+    list.append(li);
+  }
+}
+$('reset').addEventListener('click', () => { tapped = {}; saveTapped(tapped); drawItems(); });
+drawAll();
+
+// PC のアプリが一覧を更新したら、開いたままでも入れ替わる（読みに行くのはこのページの list.json だけで、お店には行かない）
+async function refresh() {
+  try {
+    const res = await fetch('list.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const next = await res.json();
+    if (next.stamp > DATA.stamp) { DATA = next; drawAll(); }
+  } catch (e) { /* 読めなければ今の一覧のまま */ }
+}
+refresh();
+setInterval(() => { if (document.visibilityState === 'visible') refresh(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
+
+function tick() {
+  const [startH, startM] = DATA.start.split(':').map(Number);
+  const START = startH * 3600 + startM * 60;
+  const now = jst();
+  const sec = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const since = (sec - START + DAY) % DAY;
+  const clock = $('clock');
+  const live = since < LIVE_SECONDS;
+  const left = DAY - since;
+  clock.classList.toggle('live', live);
+  clock.classList.toggle('soon', !live && left <= 60);
+  $('clockLabel').textContent = live ? `${DATA.start} を過ぎました。今です` : `${DATA.start} まで`;
+  $('clockTime').textContent = live ? '+' + hms(since).slice(3) : hms(left);
+  $('clockNow').textContent = `今 ${hms(sec)}（このスマホの時計）`;
+}
+tick();
+setInterval(tick, 200);
+
+let wake = null;
+async function keepAwake() {
+  try { if (!wake && document.visibilityState === 'visible') { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) { /* 使えない端末ではそのまま */ }
+}
+keepAwake();
+document.addEventListener('visibilitychange', keepAwake);
+</script>
+</body>
+</html>
