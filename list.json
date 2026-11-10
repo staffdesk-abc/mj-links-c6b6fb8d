@@ -1,6 +1,6 @@
 {
- "stamp": "2026-11-08T12:41:29+09:00",
- "updated": "11/8 12:41",
+ "stamp": "2026-11-10T22:21:35+09:00",
+ "updated": "11/10 22:21",
  "start": "12:00",
  "store": "https://www.mellojoyjapan.com/",
  "cart": "https://www.mellojoyjapan.com/cart",
@@ -8,7 +8,8 @@
  "allTotal": 38088,
  "allCount": 30,
  "left": [
-  "Z001-10"
+  "Z001-10",
+  "A040"
  ],
  "shipping": 499,
  "freeFrom": 5000,
